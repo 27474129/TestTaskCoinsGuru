@@ -5,3 +5,22 @@ services:
     build: .
     ports:
       - "8000:8000"
+    volumes:
+      - .:/sources/
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - db:/var/lib/postgresql
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./sql/fill_tables.sql:/docker-entrypoint-initdb.d/fill_tables.sql
+    environment:
+      - POSTGRES_PASSWORD=27474129
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+
+volumes:
+  db: null
