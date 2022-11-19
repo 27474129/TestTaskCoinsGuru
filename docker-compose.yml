@@ -7,20 +7,25 @@ services:
       - "8000:8000"
     volumes:
       - .:/sources/
-  db:
-    image: postgres
-    restart: always
-    volumes:
-      - db:/var/lib/postgresql
-      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
-      - ./sql/fill_tables.sql:/docker-entrypoint-initdb.d/fill_tables.sql
-    environment:
-      - POSTGRES_PASSWORD=27474129
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - "8080:8080"
+    depends_on:
+      - redis
+    links:
+      - redis
 
-volumes:
-  db: null
+  redis:
+    hostname: redis
+    image: redis
+    ports:
+      - "6379:6379"
+
+  celery:
+    restart: always
+    build: .
+    command: ["celery", "-A", "tasks", "worker", "-l", "info"]
+    depends_on:
+      - app
+      - redis
+    links:
+      - redis
+    volumes:
+      - .:/sources/
